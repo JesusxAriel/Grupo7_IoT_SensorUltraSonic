@@ -302,35 +302,100 @@ void Semaforo::procesarDistancia(float distanciaCm) {
 ### `main.cpp`
 
 ```cpp
+
 #include <Arduino.h>
 #include "UltrasonicSensor.h"
 #include "Semaforo.h"
 
-// Mapeo de pines para la placa ESP32
+// =====================================================
+// CONFIGURACIÓN DE PINES - ESP32
+// =====================================================
 namespace Pines {
     constexpr uint8_t TRIG = 27;
     constexpr uint8_t ECHO = 26;
+
     constexpr uint8_t VERDE = 13;
     constexpr uint8_t AMARILLO = 12;
     constexpr uint8_t ROJO = 14;
 }
 
-// Instanciación global de componentes
+// =====================================================
+// INSTANCIACIÓN DE COMPONENTES
+// =====================================================
 UltrasonicSensor sensor(Pines::TRIG, Pines::ECHO);
 Semaforo semaforo(Pines::VERDE, Pines::AMARILLO, Pines::ROJO);
 
+// =====================================================
+// CONTROL DE IMPRESIÓN POR PUERTO SERIAL
+// =====================================================
+unsigned long lastPrintMs = 0;
+
+// Imprimir información cada 250 ms
+constexpr unsigned long PRINT_INTERVAL_MS = 250;
+
+// =====================================================
+// SETUP
+// =====================================================
 void setup() {
     Serial.begin(115200);
+
+    // Inicializar sensor ultrasónico
     sensor.begin();
+
+    // Inicializar semáforo
     semaforo.begin();
+
+    Serial.println();
+    Serial.println("--- Sistema de Semaforo Ultrasonico Iniciado ---");
+    Serial.println("Sensor HC-SR04 listo.");
+    Serial.println("Semaforo listo.");
+    Serial.println();
 }
 
+// =====================================================
+// LOOP PRINCIPAL
+// =====================================================
 void loop() {
-    // 1. Avance de las máquinas de estado no bloqueantes
+
+    // -------------------------------------------------
+    // 1. Actualizar máquinas de estado
+    // -------------------------------------------------
     sensor.update();
     semaforo.update();
 
-    // 2. Transferencia de información entre el módulo de entrada y el de salida
-    semaforo.procesarDistancia(sensor.getDistanceCM());
+    // -------------------------------------------------
+    // 2. Obtener distancia medida por el sensor
+    // -------------------------------------------------
+    float distancia = sensor.getDistanceCM();
+
+    // -------------------------------------------------
+    // 3. Procesar distancia y actualizar semáforo
+    // -------------------------------------------------
+    semaforo.procesarDistancia(distancia);
+
+    // -------------------------------------------------
+    // 4. Mostrar información por el Monitor Serial
+    // -------------------------------------------------
+    if (millis() - lastPrintMs >= PRINT_INTERVAL_MS) {
+
+        lastPrintMs = millis();
+
+        // Verificar si la lectura es inválida
+        if (distancia < 0.0f ||
+            distancia < 2.0f ||
+            distancia > 400.0f) {
+
+            Serial.println(
+                "[ALERTA] Lectura invalida / Error de Sensor: "
+                "¡Parpadeando los 3 LEDs a la vez!"
+            );
+
+        } else {
+
+            Serial.print("Distancia objeto: ");
+            Serial.print(distancia, 1);
+            Serial.println(" cm");
+        }
+    }
 }
 ```
