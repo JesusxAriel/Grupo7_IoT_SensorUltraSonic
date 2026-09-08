@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Demostración de Sensor Ultrasónico con LED — Reporte de Desarrollo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --surface-line: #E1E6EC;
+    --ink: #1B222C;
+    --muted: #5B6472;
+    --trace: #8792A3;
+    --accent: #0C8599;
+    --accent-soft: #E4F3F5;
+    --led-red: #D6432D;
+    --led-yellow: #C6941F;
+    --led-green: #2F9E52;
+    --warning: #B8560F;
+    --warning-soft: #FBEEE3;
+    --grid-line: #E7EBEF;
+    --ok: #2F9E52;
+    --ok-soft: #E7F5EC;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12161C;
+      --surface: #1B212B;
+      --surface-line: #2B3340;
+      --ink: #E7EAEE;
+      --muted: #93A0B2;
+      --trace: #647087;
+      --accent: #22B8CF;
+      --accent-soft: #16323A;
+      --led-red: #FF6A52;
+      --led-yellow: #F5C452;
+      --led-green: #4CC97A;
+      --warning: #E38A3D;
+      --warning-soft: #33261A;
+      --grid-line: #232B36;
+      --ok: #4CC97A;
+      --ok-soft: #16321F;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #12161C;
+    --surface: #1B212B;
+    --surface-line: #2B3340;
+    --ink: #E7EAEE;
+    --muted: #93A0B2;
+    --trace: #647087;
+    --accent: #22B8CF;
+    --accent-soft: #16323A;
+    --led-red: #FF6A52;
+    --led-yellow: #F5C452;
+    --led-green: #4CC97A;
+    --warning: #E38A3D;
+    --warning-soft: #33261A;
+    --grid-line: #232B36;
+    --ok: #4CC97A;
+    --ok-soft: #16321F;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+
+  header.masthead { margin-bottom: 40px; }
+
+  .eyebrow {
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+
+  h1 {
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-weight: 700;
+    font-size: clamp(34px, 5vw, 48px);
+    line-height: 1.02;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+
+  .dek { font-size: 16px; line-height: 1.55; color: var(--muted); max-width: 68ch; margin: 0; }
+
+  .meta-strip {
+    display: flex; gap: 20px; flex-wrap: wrap;
+    margin-top: 22px; padding-top: 18px;
+    border-top: 1px solid var(--surface-line);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12.5px; color: var(--muted);
+  }
+  .meta-strip strong { color: var(--ink); font-weight: 500; }
+
+  nav.toc {
+    margin-top: 28px;
+    background: var(--surface);
+    border: 1px solid var(--surface-line);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  nav.toc h2 { font-size: 13px; margin: 0 0 10px; }
+  nav.toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 28px; }
+  nav.toc li { font-size: 13.5px; margin-bottom: 6px; break-inside: avoid; }
+  nav.toc a { color: var(--ink); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); }
+
+  section { margin-top: 48px; scroll-margin-top: 20px; }
+  section.phase { padding-top: 8px; border-top: 3px solid var(--accent-soft); }
+
+  .phase-kicker {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 18px 0 2px;
+  }
+
+  h2 {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 600; font-size: 26px; letter-spacing: 0.005em;
+    margin: 0 0 4px;
+  }
+  h3 {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 600; font-size: 18px;
+    margin: 28px 0 8px;
+  }
+
+  .section-note { color: var(--muted); font-size: 14px; margin: 0 0 18px; max-width: 74ch; line-height: 1.55; }
+
+  p { line-height: 1.6; font-size: 14.5px; }
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    background: var(--accent-soft);
+    color: var(--ink);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.92em;
+  }
+
+  .diagram-panel {
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 100% 24px,
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 24px 100%,
+      var(--surface);
+    border: 1px solid var(--surface-line);
+    border-radius: 10px;
+    padding: 20px;
+    overflow-x: auto;
+    text-align: center;
+  }
+  .diagram-panel .mermaid { display: inline-block; }
+  figcaption { margin-top: 10px; font-size: 12.5px; color: var(--muted); text-align: center; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  caption { caption-side: top; text-align: left; font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--surface-line); vertical-align: top; }
+  th {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 600; font-size: 12px; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  td.mono, th.mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .table-wrap {
+    overflow-x: auto; background: var(--surface);
+    border: 1px solid var(--surface-line); border-radius: 10px; padding: 6px 16px;
+  }
+
+  .badge {
+    display: inline-block; padding: 2px 9px; border-radius: 999px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge.critical { background: var(--warning-soft); color: var(--warning); }
+  .badge.high { background: var(--warning-soft); color: var(--warning); }
+  .badge.medium { background: var(--accent-soft); color: var(--accent); }
+  .badge.low { background: var(--grid-line); color: var(--muted); }
+  .badge.resolved, .badge.done, .badge.confirmed { background: var(--ok-soft); color: var(--ok); }
+  .badge.open { background: var(--warning-soft); color: var(--warning); }
+  .badge.false { background: var(--warning-soft); color: var(--warning); }
+
+  .callouts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 680px) { .callouts { grid-template-columns: 1fr; } nav.toc ol { columns: 1; } }
+  .callout {
+    border-radius: 10px; padding: 16px 18px;
+    border: 1px solid var(--surface-line); background: var(--surface);
+  }
+  .callout h4 {
+    font-family: "Barlow Condensed", sans-serif; font-size: 15px; font-weight: 600;
+    margin: 0 0 6px;
+  }
+  .callout p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--muted); }
+
+  .phase-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0 8px;
+  }
+  @media (max-width: 760px) { .phase-grid { grid-template-columns: repeat(2, 1fr); } }
+  .phase-card {
+    border: 1px solid var(--surface-line); background: var(--surface);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .phase-card .num {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 22px; color: var(--accent);
+  }
+  .phase-card .name { font-weight: 500; font-size: 13.5px; margin: 4px 0 6px; }
+  .phase-card .detail { font-size: 12px; color: var(--muted); font-family: "IBM Plex Mono", ui-monospace, monospace; line-height: 1.5; }
+
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+  footer {
+    margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--surface-line);
+    font-size: 12.5px; color: var(--muted); font-family: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  footer a { color: var(--accent); }
+  footer ul { padding-left: 18px; }
+  footer li { margin-bottom: 4px; }
+
+  .back-to-top { font-size: 11.5px; color: var(--muted); text-decoration: none; }
+  .back-to-top:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="masthead" id="top">
+    <p class="eyebrow">Demostración de Sensor Ultrasónico con LED — Reporte Consolidado</p>
+    <h1>Del Requisitos hasta el Comportamiento Verificado</h1>
+    <p class="dek">Un registro único de cómo esta demostración de proximidad con ESP32 + HC-SR04 avanzó a través del análisis de requisitos, el diseño del sistema, la implementación y las pruebas — junto con los artefactos, decisiones y temas pendientes que dejó cada fase.</p>
+    <div class="meta-strip">
+      <span>Placa: <strong>esp32doit-devkit-v1</strong></span>
+      <span>Sensor: <strong>HC-SR04</strong></span>
+      <span>Fases: <strong>4</strong></span>
+      <span>RFs: <strong>8 / 8 implementados</strong></span>
+      <span>Generado: <strong>2026-08-28</strong></span>
+    </div>
+
+    <nav class="toc" aria-label="Tabla de contenidos">
+      <h2>Contenido</h2>
+      <ol>
+        <li><a href="#exec-summary">Resumen Ejecutivo</a></li>
+        <li><a href="#phase-1">Fase 1 — Análisis de Requisitos</a></li>
+        <li><a href="#phase-2">Fase 2 — Diseño del Sistema</a></li>
+        <li><a href="#phase-3">Fase 3 — Implementación</a></li>
+        <li><a href="#phase-4">Fase 4 — Pruebas</a></li>
+        <li><a href="#traceability">Trazabilidad de Extremo a Extremo</a></li>
+      </ol>
+    </nav>
+  </header>
+
+  <section aria-labelledby="exec-summary-heading" id="exec-summary">
+    <h2 id="exec-summary-heading">Resumen Ejecutivo</h2>
+    <p class="section-note">El proyecto siguió cuatro fases secuenciales, cada una produciendo artefactos duraderos bajo <code>_bmad-output/</code>. Los ocho requisitos funcionales están implementados en <code>src/</code> y han superado dos auditorías estáticas de código; el plan de pruebas manuales en hardware está definido pero <strong>aún no se ha ejecutado</strong> — su registro de resultados se encuentra vacío actualmente.</p>
+
+    <div class="phase-grid">
+      <div class="phase-card">
+        <div class="num">01</div>
+        <div class="name">Análisis de Requisitos</div>
+        <div class="detail">prd.md<br>test-plan.md<br>8 RFs definidos</div>
+      </div>
+      <div class="phase-card">
+        <div class="num">02</div>
+        <div class="name">Diseño del Sistema</div>
+        <div class="detail">ARCHITECTURE-SPINE.md<br>6 invariantes (AD-1…6)<br>2 revisiones</div>
+      </div>
+      <div class="phase-card">
+        <div class="num">03</div>
+        <div class="name">Implementación</div>
+        <div class="detail">3 especificaciones<br>3 commits<br>265 líneas de C++</div>
+      </div>
+      <div class="phase-card">
+        <div class="num">04</div>
+        <div class="name">Pruebas</div>
+        <div class="detail">12 casos de prueba manuales<br>pio run (validación de compilación)<br>ejecución pendiente</div>
+      </div>
+    </div>
+
+    <h3>Flujo de Desarrollo</h3>
+    <figure class="diagram-panel">
+      <pre class="mermaid">
+flowchart LR
+    A["Fase 1\nAnálisis de Requisitos\nprd.md / test-plan.md"] --> B["Fase 2\nDiseño del Sistema\nARCHITECTURE-SPINE.md"]
+    B --> C["Fase 3\nImplementación\nsrc/*.cpp, src/*.h"]
+    C --> D["Fase 4\nPruebas\nEjecución de test-plan.md"]
+    B -. revisado por .-> R1["Revisión Adversarial\n5 hallazgos"]
+    B -. revisado por .-> R2["Verificación Técnica\nVerificación GPIO / HC-SR04"]
+    R1 -. correcciones incorporadas .-> B
+    R2 -. correcciones incorporadas .-> B
+      </pre>
+      <figcaption>Ambas revisiones de la Fase 2 retroalimentaron con correcciones la columna vertebral de la arquitectura antes de iniciar la implementación.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ===================== FASE 1 ===================== -->
+  <section class="phase" aria-labelledby="phase-1-heading" id="phase-1">
+    <p class="phase-kicker">Fase 1 de 4</p>
+    <h2 id="phase-1-heading">Análisis de Requisitos</h2>
+    <p class="section-note">Fuente: <code>_bmad-output/planning-artifacts/prds/prd-ultrasonic-sensor-leds-demo-2026-08-27/prd.md</code></p>
+
+    <h3>Visión</h3>
+    <p>Una demostración física que convierte lecturas ultrasónicas continuas en una señalización visual clara — <strong style="color:var(--led-red)">rojo</strong> indica demasiado cerca, <strong style="color:var(--led-yellow)">amarillo</strong> indica proximidad intermedia, <strong style="color:var(--led-green)">verde</strong> indica libre — demostrando a su vez una estructura orientada a objetos limpia y testeable en C++ embebido: una clase <code>Led</code> y una clase <code>UltrasonicSensor</code>, cada una cumpliendo una sola responsabilidad, orquestadas por un programa principal sencillo.</p>
+
+    <h3>Usuario Objetivo y Tareas a Realizar (JTBD)</h3>
+    <p>Demostración individual — quien construye es también la audiencia: mostrar una demostración de hardware autosuficiente que explique el funcionamiento del sensor ultrasónico <em>y</em> la estructura POO en sistemas embebidos; confirmar visualmente las zonas de un vistazo sin depender de la salida serial; ejecutar pruebas manuales repetibles tras cualquier cambio de código.</p>
+
+    <h3>Glosario</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Término</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td>Lectura de distancia</td><td>Medición en centímetros devuelta por <code>UltrasonicSensor</code>, o una Lectura Inválida explícita.</td></tr>
+          <tr><td>Lectura Inválida</td><td>Tiempo de espera agotado del HC-SR04, ausencia de eco, o distancia fuera del rango útil de ~2–400&nbsp;cm.</td></tr>
+          <tr><td>Zona</td><td>Roja (<code>d&lt;20cm</code>), Amarilla (<code>20≤d&lt;40cm</code>), Verde (<code>d≥40cm</code>) o Error (Lectura Inválida).</td></tr>
+          <tr><td>Led</td><td>Clase encargada del control de encendido, apagado y parpadeo de un LED físico individual.</td></tr>
+          <tr><td>UltrasonicSensor</td><td>Clase encargada del disparo, medición y reporte del sensor HC-SR04.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Requisitos Funcionales</h3>
+    <div class="table-wrap">
+      <table>
+        <caption>RF-1 a RF-8, establecidos en el PRD</caption>
+        <thead><tr><th class="mono">ID</th><th>Requisito</th><th>Consecuencias Verificables</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">RF-1</td><td>Medición Continua de Distancia</td><td>Lectura tomada aprox. cada 100&nbsp;ms; el tiempo agotado, la ausencia de eco o valores fuera de rango se reportan como Inválidos, nunca como un valor arbitrario.</td></tr>
+          <tr><td class="mono">RF-2</td><td><span class="dot" style="background:var(--led-red)"></span>Alerta de Zona Roja (<code>d&lt;20cm</code>)</td><td>El LED rojo parpadea a 4&nbsp;Hz (ciclo de trabajo ~50%); amarillo y verde permanecen apagados.</td></tr>
+          <tr><td class="mono">RF-3</td><td><span class="dot" style="background:var(--led-yellow)"></span>Indicador de Zona Amarilla (<code>20≤d&lt;40cm</code>)</td><td>El LED amarillo encendido fijo, incluyendo exactamente 20&nbsp;cm; rojo y verde permanecen apagados.</td></tr>
+          <tr><td class="mono">RF-4</td><td><span class="dot" style="background:var(--led-green)"></span>Indicador de Zona Verde (<code>d≥40cm</code>)</td><td>El LED verde encendido fijo, incluyendo exactamente 40&nbsp;cm; rojo y amarillo permanecen apagados.</td></tr>
+          <tr><td class="mono">RF-5</td><td>Lectura Inválida / Estado de Error</td><td>Los 3 LEDs parpadean al unísono a 2&nbsp;Hz hasta reanudar lecturas válidas; es el estado por defecto al encender.</td></tr>
+          <tr><td class="mono">RF-6</td><td>Clase <code>Led</code></td><td>3 instancias independientes, cada una administrando su propio pin; parpadeo no bloqueante; sin bloqueos entre LEDs.</td></tr>
+          <tr><td class="mono">RF-7</td><td>Clase <code>UltrasonicSensor</code></td><td>Exactamente una instancia administra los pines de disparo (trigger) y eco; ningún otro módulo los manipula.</td></tr>
+          <tr><td class="mono">RF-8</td><td>Orquestación Simplificada</td><td><code>setup()</code>/<code>loop()</code> no ejecutan llamadas directas a <code>digitalWrite</code>, <code>digitalRead</code> ni <code>pulseIn</code> sobre los pines del sensor o LEDs.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Fuera de Alcance (Explicito)</h3>
+    <p>Sin funciones WiFi/BLE/telemetría &middot; sin persistencia tras reinicios &middot; sin histéresis en los límites de 20&nbsp;cm / 40&nbsp;cm (se acepta la conmutación rápida en el límite) &middot; soporte para un solo sensor &middot; sin interfaz de calibración ni umbrales ajustables en tiempo de ejecución &middot; sin optimización para consumo de batería.</p>
+
+    <h3>Criterios de Éxito</h3>
+    <p>Todos los casos de prueba manuales contenidos en <code>test-plan.md</code> se ejecutan con éxito en el hardware real, <strong>y</strong> cualquier desarrollador que revise el código puede comprender las responsabilidades de las clases <code>Led</code> y <code>UltrasonicSensor</code> sin necesidad de inspeccionar <code>setup()</code>/<code>loop()</code>. Al tratarse de un proyecto demostrativo a escala personal, no aplican métricas de adopción cuantitativas.</p>
+
+    <h3>Preguntas Abiertas Identificadas en Esta Fase</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="mono">#</th><th>Pregunta</th><th>Resuelto En</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">1</td><td>Asignación exacta de pines GPIO</td><td>Fase 2 — Tabla de Asignación de Pines</td></tr>
+          <tr><td class="mono">2</td><td>Mecanismo de temporización no bloqueante exacto</td><td>Fase 2 — AD-1 (bucle principal con <code>millis()</code>)</td></tr>
+          <tr><td class="mono">3</td><td>Intervalo de muestreo del sensor (se asumen ~100&nbsp;ms)</td><td>Fase 2 — AD-6 (confirmado con la hoja de datos)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== FASE 2 ===================== -->
+  <section class="phase" aria-labelledby="phase-2-heading" id="phase-2">
+    <p class="phase-kicker">Fase 2 de 4</p>
+    <h2 id="phase-2-heading">Diseño del Sistema (Arquitectura)</h2>
+    <p class="section-note">Fuente: <code>ARCHITECTURE-SPINE.md</code>, junto con dos etapas independientes de revisión.</p>
+
+    <h3>Paradigma de Diseño</h3>
+    <p><strong>Clases orientadas a objetos para controladores de hardware sobre un bucle principal cooperativo basado en <code>millis()</code>.</strong> Dos clases de controladores (<code>Led</code>, <code>UltrasonicSensor</code>) administran de manera independiente su propio hardware y estado de temporización. La función <code>loop()</code> en <code>main.cpp</code> actúa como el planificador cooperativo: consulta al sensor (gestionado internamente), evalúa la zona correspondiente y ejecuta la función no bloqueante <code>update()</code> en cada controlador. No se emplean tareas de RTOS, interrupciones ni librerías de temporización de terceros — aplicando el patrón clásico de "parpadeo sin bloqueo" en C++.</p>
+
+    <h3>Diagrama de Dependencias de Componentes</h3>
+    <figure class="diagram-panel">
+      <pre class="mermaid">
+graph LR
+  main["main.cpp (setup/loop)"] --> Led
+  main --> UltrasonicSensor
+  main -. lee .-> SensorReading
+  UltrasonicSensor -. retorna .-> SensorReading
+      </pre>
+      <figcaption><code>main.cpp</code> depende de ambas clases de controladores; los controladores son independientes entre sí y no conocen a <code>main.cpp</code>.</figcaption>
+    </figure>
+
+    <h3>Máquina de Estados de Zona</h3>
+    <figure class="diagram-panel">
+      <pre class="mermaid">
+stateDiagram-v2
+  [*] --> Error : encendido (sin lectura aún)
+  Error --> Rojo : lectura válida, d menor a 20cm
+  Error --> Amarillo : lectura válida, 20 a 40cm
+  Error --> Verde : lectura válida, d mayor o igual a 40cm
+  Rojo --> Amarillo : 20 a 40cm
+  Rojo --> Verde : d mayor o igual a 40cm
+  Rojo --> Error : lectura inválida
+  Amarillo --> Rojo : d menor a 20cm
+  Amarillo --> Verde : d mayor o igual a 40cm
+  Amarillo --> Error : lectura inválida
+  Verde --> Rojo : d menor a 20cm
+  Verde --> Amarillo : 20 a 40cm
+  Verde --> Error : lectura inválida
+      </pre>
+      <figcaption>Cada lectura válida se asigna a una sola zona; cualquier lectura inválida regresa el sistema al Estado de Error independientemente de la zona actual.</figcaption>
+    </figure>
+
+    <h3>Invariantes Arquitectónicas</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="mono">ID</th><th>Regla</th><th>Previene</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">AD-1</td><td>Prohibido el uso de <code>delay()</code>; toda la temporización se gestiona mediante comparaciones con <code>millis()</code>.</td><td>Que el tiempo de ejecución de un componente bloquee a los demás.</td></tr>
+          <tr><td class="mono">AD-2</td><td><code>SensorReading{valid, distanceCm}</code> es un tipo de valor a nivel de archivo; <code>valid</code> inicia en <code>false</code> y requiere una llamada a <code>pulseIn()</code> sin tiempo agotado <strong>y</strong> un valor dentro de <code>[2.0, 400.0]</code>cm.</td><td>Criterios inconsistentes e incompatibles para determinar lecturas inválidas entre archivos.</td></tr>
+          <tr><td class="mono">AD-3</td><td>Uso de <code>pulseIn(echoPin, HIGH, ~23200us)</code> bloqueante, sin interrupciones ni librerías externas de distancia.</td><td>Implementaciones redundantes o divergentes del controlador del sensor.</td></tr>
+          <tr><td class="mono">AD-4</td><td><code>Led</code> gestiona su propio temporizador; <code>blink(hz)</code> es idempotente si la frecuencia no cambia (no reinicia el ciclo en cada llamada).</td><td>Dependencia de un gestor global de LEDs; fallos de reinicio constante que congelen los LEDs encendidos.</td></tr>
+          <tr><td class="mono">AD-5</td><td>La evaluación de zonas consiste en comparaciones directas en <code>main.cpp</code>; sin clases intermedias adicionales; los controladores no se importan mutuamente.</td><td>Sobrecarga de orquestación; dependencias circulares.</td></tr>
+          <tr><td class="mono">AD-6</td><td>El control del intervalo de 100&nbsp;ms reside exclusivamente en <code>UltrasonicSensor::update()</code>.</td><td>Evaluaciones duplicadas o falta de sincronización entre <code>main.cpp</code> y el controlador del sensor.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Asignación de Pines GPIO</h3>
+    <p class="section-note">Pines seleccionados evitando los pines de arranque (strapping pins: 0, 2, 5, 12, 15) y los pines de solo entrada (34–39). El esquema completo de conexión, notas de seguridad y tabla de patrones visuales se encuentra en: <a href="wiring-diagram.html">wiring-diagram.html</a>.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Señal</th><th class="mono">GPIO</th><th>Dirección</th><th>Notas</th></tr></thead>
+        <tbody>
+          <tr><td><span class="dot" style="background:var(--accent)"></span>Disparo (Trigger) HC-SR04</td><td class="mono">4</td><td>Salida</td><td>Pulso de disparo de 10&nbsp;µs</td></tr>
+          <tr><td><span class="dot" style="background:var(--accent)"></span>Eco (Echo) HC-SR04</td><td class="mono">18</td><td>Entrada</td><td>Línea de medición de <code>pulseIn()</code>, mediante divisor de tensión 1k/2kΩ (5V a 3.3V)</td></tr>
+          <tr><td><span class="dot" style="background:var(--led-red)"></span>LED Rojo</td><td class="mono">25</td><td>Salida</td><td>Resistencia en serie de 330Ω</td></tr>
+          <tr><td><span class="dot" style="background:var(--led-yellow)"></span>LED Amarillo</td><td class="mono">26</td><td>Salida</td><td>Resistencia en serie de 330Ω</td></tr>
+          <tr><td><span class="dot" style="background:var(--led-green)"></span>LED Verde</td><td class="mono">27</td><td>Salida</td><td>Resistencia en serie de 330Ω</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Mapeo de Requisitos a la Arquitectura</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="mono">RF</th><th>Ubicación en Código</th><th>Invariante Asociada</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">RF-1</td><td><code>UltrasonicSensor::update()</code> + <code>lastReading()</code></td><td>AD-2, AD-3, AD-6</td></tr>
+          <tr><td class="mono">RF-2</td><td><code>main.cpp</code> → <code>redLed.blink(4.0f)</code></td><td>AD-4, AD-5</td></tr>
+          <tr><td class="mono">RF-3</td><td><code>main.cpp</code> → <code>yellowLed.solidOn()</code></td><td>AD-5</td></tr>
+          <tr><td class="mono">RF-4</td><td><code>main.cpp</code> → <code>greenLed.solidOn()</code></td><td>AD-5</td></tr>
+          <tr><td class="mono">RF-5</td><td><code>main.cpp</code> → todos en <code>.blink(2.0f)</code>; estado inicial mediante AD-2</td><td>AD-2, AD-4</td></tr>
+          <tr><td class="mono">RF-6</td><td><code>Led.h</code> / <code>Led.cpp</code></td><td>AD-1, AD-4</td></tr>
+          <tr><td class="mono">RF-7</td><td><code>UltrasonicSensor.h</code> / <code>.cpp</code></td><td>AD-2, AD-3, AD-6</td></tr>
+          <tr><td class="mono">RF-8</td><td><code>main.cpp</code> <code>setup()</code>/<code>loop()</code></td><td>AD-1, AD-5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Hallazgos de las Revisiones de Diseño</h3>
+    <p class="section-note">Se ejecutaron dos etapas independientes de revisión sobre el diseño de la arquitectura antes de iniciar la fase de código.</p>
+
+    <p style="font-weight:500; margin-bottom:6px;">Revisión adversarial — evaluación de posibles inconsistencias al integrar módulos desarrollados de forma independiente.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="mono">#</th><th>Severidad</th><th>Hallazgo</th><th>Resolución en el Diseño Final</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">1</td><td><span class="badge critical">Crítica</span></td><td>El comportamiento del reinicio en <code>Led::blink(hz)</code> no estaba definido; una implementación válida podía congelar los LEDs encendidos.</td><td>AD-4 especifica de forma explícita el comportamiento idempotente del temporizador.</td></tr>
+          <tr><td class="mono">2</td><td><span class="badge high">Alta</span></td><td>Inconsistencia en el documento respecto a la presencia del método <code>begin()</code> en la clase <code>Led</code>.</td><td>Se estandarizó la presencia del método <code>begin()</code> en <code>Led</code>, alineándolo con <code>UltrasonicSensor</code>.</td></tr>
+          <tr><td class="mono">3</td><td><span class="badge medium">Media</span></td><td>El límite inferior (&lt;2cm) para la consideración de Lectura Inválida en RF-1 no estaba delimitado.</td><td>AD-2 define explícitamente el rango válido en <code>[2.0, 400.0]</code>cm.</td></tr>
+          <tr><td class="mono">4</td><td><span class="badge medium">Media</span></td><td>Ambigüedad sobre la responsabilidad del control de tiempo de muestreo entre <code>main.cpp</code> y <code>UltrasonicSensor</code>.</td><td>AD-6 asigna la responsabilidad de la temporización de forma exclusiva a <code>UltrasonicSensor</code>.</td></tr>
+          <tr><td class="mono">5</td><td><span class="badge low">Baja</span></td><td>El ámbito de declaración de <code>SensorReading</code> (anidado frente a libre) no estaba especificado.</td><td>AD-2 define que la estructura reside a nivel de archivo.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="font-weight:500; margin: 20px 0 6px;">Revisión de verificación técnica — validación cruzada con la documentación del ESP32 y la hoja de datos del HC-SR04.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="mono">#</th><th>Afirmación Evaluada</th><th>Resultado</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">1</td><td>El GPIO5 estaba asignado inicialmente a Trigger, indicando evitar pines de arranque.</td><td><span class="badge false">Incorrecto en el borrador</span> — El GPIO5 es un pin de arranque. La arquitectura final asigna Trigger al <strong>GPIO4</strong>.</td></tr>
+          <tr><td class="mono">2</td><td>GPIO18 (Echo) y GPIO 25/26/27 (LEDs) son asignaciones seguras.</td><td><span class="badge confirmed">Confirmado</span></td></tr>
+          <tr><td class="mono">3</td><td>Pines GPIO 34–39 clasificados como solo entrada.</td><td><span class="badge medium">Correcto en su mayoría</span> (los pines 37 y 38 no están expuestos en este modelo de placa)</td></tr>
+          <tr><td class="mono">4</td><td>Constantes de tiempo y rango del HC-SR04 (2–400cm, ~60ms entre disparos, 23200µs tiempo límite, pulso de disparo de 10µs).</td><td><span class="badge confirmed">Confirmado</span></td></tr>
+          <tr><td class="mono">5</td><td>Comportamiento bloqueante de la función <code>pulseIn()</code> en el entorno arduino-esp32.</td><td><span class="badge confirmed">Confirmado</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== FASE 3 ===================== -->
+  <section class="phase" aria-labelledby="phase-3-heading" id="phase-3">
+    <p class="phase-kicker">Fase 3 de 4</p>
+    <h2 id="phase-3-heading">Implementación</h2>
+    <p class="section-note">Fuente: 3 especificaciones de implementación en <code>_bmad-output/implementation-artifacts/</code>, integradas en 3 commits.</p>
+
+    <h3>Estructura de Clases (Construida)</h3>
+    <figure class="diagram-panel">
+      <pre class="mermaid">
+classDiagram
+  class SensorReading {
+    +bool valid = false
+    +float distanceCm = 0.0f
+  }
+  class UltrasonicSensor {
+    -uint8_t triggerPin_
+    -uint8_t echoPin_
+    -unsigned long lastReadMs_
+    -SensorReading lastReading_
+    +begin() void
+    +update() void
+    +lastReading() SensorReading
+  }
+  class Led {
+    -uint8_t pin_
+    -Mode mode_
+    -float blinkHz_
+    -unsigned long lastToggleMs_
+    -unsigned long intervalMs_
+    +begin() void
+    +off() void
+    +solidOn() void
+    +blink(hz) void
+    +update() void
+  }
+  class MainCpp {
+    +setup() void
+    +loop() void
+    -computeZone(SensorReading) Zone
+  }
+  MainCpp --> Led : contiene 3 instancias
+  MainCpp --> UltrasonicSensor : contiene 1 instancia
+  UltrasonicSensor ..> SensorReading : retorna
+  MainCpp ..> SensorReading : lee
+      </pre>
+      <figcaption>Dos clases de controladores de hardware independientes, coordinadas mediante un programa principal de orquestación directa.</figcaption>
+    </figure>
+
+    <h3>Especificaciones de Implementación</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Especificación</th><th>Tipo</th><th>Resumen</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">spec-distance-zone-<br>indicator.md</td><td>Funcionalidad</td><td>Implementación de <code>Led</code> y <code>UltrasonicSensor</code> como clases de controladores no bloqueantes cooperativas, junto con <code>main.cpp</code> enlazando sensor → zona → LEDs. Se completaron las 7 tareas y 7 criterios de aceptación.</td></tr>
+          <tr><td class="mono">spec-member-and-<br>constant-naming-fix.md</td><td>Mantenimiento (estilo)</td><td>Normalización de miembros privados de guion bajo inicial (<code>_pin</code>) a guion bajo final (<code>pin_</code>); constantes de <code>kPascalCase</code> a <code>UPPER_SNAKE_CASE</code> en todo el código fuente y documentación.</td></tr>
+          <tr><td class="mono">spec-review-c-code-<br>conventions.md</td><td>Mantenimiento (auditoría)</td><td>Auditoría de <code>src/</code> frente a la tabla de convenciones de la arquitectura — cumplimiento total verificado; se unificó el enlace interno mediante espacios de nombres anónimos para las variables globales, enumeración <code>Zone</code> y función <code>computeZone()</code> en <code>main.cpp</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Inventario de Código Fuente</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Archivo</th><th class="mono">Líneas</th><th>Responsabilidad</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">src/main.cpp</td><td class="mono">78</td><td>Enumeración de zonas, lógica de umbrales, orquestación de <code>setup()</code>/<code>loop()</code></td></tr>
+          <tr><td class="mono">src/Led.h</td><td class="mono">41</td><td>Declaración de la clase <code>Led</code></td></tr>
+          <tr><td class="mono">src/Led.cpp</td><td class="mono">56</td><td>Máquina de estados de la clase <code>Led</code> (encendido/apagado/parpadeo)</td></tr>
+          <tr><td class="mono">src/UltrasonicSensor.h</td><td class="mono">37</td><td>Declaración de la clase <code>UltrasonicSensor</code> y la estructura <code>SensorReading</code></td></tr>
+          <tr><td class="mono">src/UltrasonicSensor.cpp</td><td class="mono">53</td><td>Control de pulso de disparo, lectura de eco y validación con temporización interna</td></tr>
+          <tr style="font-weight:600"><td>Total</td><td class="mono">265</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Detalles Clave de la Implementación</h3>
+    <div class="callouts">
+      <div class="callout">
+        <h4>Umbrales de zona semicerrados</h4>
+        <p><code>d&lt;20</code> → Rojo, <code>d&lt;40</code> → Amarillo, en otro caso → Verde. Cada lectura se asigna exactamente a una zona, sin solapamientos ni brechas.</p>
+      </div>
+      <div class="callout">
+        <h4>Validación de rango en dos etapas</h4>
+        <p>Una lectura es válida si <code>pulseIn()</code> responde dentro del tiempo límite <strong>y</strong> la distancia calculada está en el intervalo <code>[2.0, 400.0]</code>cm; cualquier desviación activa el Estado de Error.</p>
+      </div>
+      <div class="callout">
+        <h4>Parpadeo idempotente</h4>
+        <p>La función <code>blink(hz)</code> reinicia el temporizador de conmutación únicamente ante un cambio real de modo o frecuencia, resolviendo el hallazgo 1 de la revisión adversarial (§ Fase 2).</p>
+      </div>
+      <div class="callout">
+        <h4>Enlace interno delimitado</h4>
+        <p>Las variables y funciones locales de <code>main.cpp</code> se declaran dentro de un espacio de nombres anónimo; <code>setup()</code> y <code>loop()</code> conservan su enlace externo para el entorno de Arduino.</p>
+      </div>
+    </div>
+
+    <h3>Historial de Commits</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="mono">Commit</th><th class="mono">Fecha</th><th>Mensaje</th><th>Especificación Asociada</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">1ae6643</td><td class="mono">2026-08-27</td><td>Implement distance zone LED indicator with ultrasonic sensor</td><td>spec-distance-zone-indicator.md</td></tr>
+          <tr><td class="mono">a5c706e</td><td class="mono">2026-08-27</td><td>chore: fix internal-linkage inconsistency in main.cpp</td><td>spec-review-c-code-conventions.md</td></tr>
+          <tr><td class="mono">a119500</td><td class="mono">2026-08-27</td><td>style: rename members to trailing-underscore, constants to UPPER_SNAKE_CASE</td><td>spec-member-and-constant-naming-fix.md</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== FASE 4 ===================== -->
+  <section class="phase" aria-labelledby="phase-4-heading" id="phase-4">
+    <p class="phase-kicker">Fase 4 de 4</p>
+    <h2 id="phase-4-heading">Pruebas</h2>
+    <p class="section-note">Fuente: <code>test-plan.md</code>, <code>deferred-work.md</code></p>
+
+    <h3>Estrategia de Pruebas</h3>
+    <p>La validación del sistema está delimitada a un <strong>plan de pruebas manuales sobre el hardware</strong> — sin entorno de pruebas unitarias automatizadas, lo cual se definió explícitamente fuera del alcance en el PRD. Las pruebas requieren la plataforma física (ESP32 + HC-SR04 + 3 LEDs), una cinta métrica y un cronómetro. El único control automatizado disponible en la etapa de compilación es la ejecución de <code>pio run</code> para verificar que el entorno <code>env:esp32doit-devkit-v1</code> compile sin advertencias ni errores.</p>
+
+    <h3>Casos de Prueba Manuales</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="mono">CP</th><th>Escenario</th><th>Resultado Esperado</th><th>Cobertura</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">CP-1</td><td>Objeto a 60&nbsp;cm</td><td>Verde encendido fijo; rojo y amarillo apagados</td><td class="mono">RF-4</td></tr>
+          <tr><td class="mono">CP-2</td><td>Objeto a 30&nbsp;cm</td><td>Amarillo encendido fijo; rojo y verde apagados</td><td class="mono">RF-3</td></tr>
+          <tr><td class="mono">CP-3</td><td>Objeto a 10&nbsp;cm</td><td>Rojo parpadea; amarillo y verde apagados</td><td class="mono">RF-2</td></tr>
+          <tr><td class="mono">CP-4</td><td>Objeto a exactamente 40&nbsp;cm</td><td>Verde encendido (no amarillo)</td><td class="mono">Límite RF-4</td></tr>
+          <tr><td class="mono">CP-5</td><td>Objeto a exactamente 20&nbsp;cm</td><td>Amarillo encendido (no rojo)</td><td class="mono">Límite RF-3</td></tr>
+          <tr><td class="mono">CP-6</td><td>Barrido 60→5→60&nbsp;cm</td><td>Transición ordenada Verde→Amarillo→Rojo y retorno; sin encender dos LEDs de zona en simultáneo</td><td class="mono">RF-2/3/4</td></tr>
+          <tr><td class="mono">CP-7</td><td>Frecuencia del parpadeo rojo @ 10cm, 5s</td><td>~20 destellos (4&nbsp;Hz ±1)</td><td class="mono">RF-2, RF-6</td></tr>
+          <tr><td class="mono">CP-8</td><td>Sin objeto en el rango del sensor</td><td>Los 3 LEDs parpadean en simultáneo</td><td class="mono">RF-5, RF-1</td></tr>
+          <tr><td class="mono">CP-9</td><td>Reiniciar alimentación sin objeto presente</td><td>Entrada inmediata al Estado de Error al iniciar</td><td class="mono">RF-5</td></tr>
+          <tr><td class="mono">CP-10</td><td>Frecuencia en Estado de Error, 5s</td><td>~10 destellos (2&nbsp;Hz ±1)</td><td class="mono">RF-5, RF-6</td></tr>
+          <tr><td class="mono">CP-11</td><td>Recuperación de Error → objeto a 30cm</td><td>Sale de Error, pasa a amarillo fijo en ~1 ciclo</td><td class="mono">RF-5, RF-1</td></tr>
+          <tr><td class="mono">CP-12</td><td>Retirar el objeto nuevamente tras CP-11</td><td>Regresa al Estado de Error</td><td class="mono">RF-5</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="section-note" style="margin-top:14px;"><strong>Estado de ejecución:</strong> El registro de resultados en <code>test-plan.md</code> se encuentra actualmente vacío — la secuencia de pruebas está definida pero no ha sido ejecutada sobre el dispositivo. La ejecución de los casos CP-1 a CP-12 representa el paso siguiente en el proyecto.</p>
+
+    <h3>Verificación a Nivel de Código (Estática)</h3>
+    <p>Adicionalmente al plan de pruebas físicas, la verificación incluyó dos auditorías estáticas durante la fase de implementación: la <strong>normalización de nombres</strong> se confirmó mediante una búsqueda global en el repositorio verificando la sustitución de patrones y comprobando que el tamaño del binario resultante se mantuviera idéntico (sin alteraciones en la lógica); la <strong>revisión de convenciones</strong> validó la conformidad total con las reglas del proyecto (estilo de nombres, formatos de datos, temporización y control de pines), verificando la ausencia de tabulaciones, espacios finales o líneas fuera de formato.</p>
+
+    <h3>Pendientes e Historial de Backlog</h3>
+    <p class="section-note">Registrado en <code>deferred-work.md</code> a partir del análisis estático de código.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Punto Pendiente</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td>Falta de documentación que detalle la asignación de pines y patrones visuales de los LEDs.</td><td><span class="badge resolved">Resuelto</span> — Documentado en wiring-diagram.html y en este reporte.</td></tr>
+          <tr><td>El archivo <code>main.cpp</code> no contiene comentarios explicativos, a diferencia de las clases de controladores.</td><td><span class="badge open">Abierto</span></td></tr>
+          <tr><td>Falta de pruebas unitarias automáticas para <code>computeZone()</code>, la máquina de estados de <code>Led</code> o la validación en <code>UltrasonicSensor</code>; sin aserción en tiempo de compilación para <code>RED_YELLOW_THRESHOLD_CM &lt; YELLOW_GREEN_THRESHOLD_CM</code>.</td><td><span class="badge open">Abierto</span> (Fuera del alcance del PMV)</td></tr>
+          <tr><td>El archivo <code>.gitignore</code> no incluye reglas para <code>__pycache__/</code>, <code>*.pyc</code> ni <code>.claude/scheduled_tasks.lock</code>.</td><td><span class="badge open">Abierto</span></td></tr>
+          <tr><td>El documento <code>ARCHITECTURE-SPINE.md</code> (AD-2, AD-6) hace referencia al método <code>UltrasonicSensor::read()</code> que no existe — los métodos reales son <code>update()</code>/<code>lastReading()</code>.</td><td><span class="badge open">Abierto</span> (Solo documentación)</td></tr>
+          <tr><td>Falta de integración de reglas de linteo automático o CI para prevenir desviaciones en las convenciones de nombres.</td><td><span class="badge open">Abierto</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== TRAZABILIDAD ===================== -->
+  <section aria-labelledby="traceability-heading" id="traceability">
+    <h2 id="traceability-heading">Matriz de Trazabilidad de Extremo a Extremo</h2>
+    <p class="section-note">Seguimiento integral de cada requisito funcional a lo largo de las cuatro fases del desarrollo.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th class="mono">RF</th><th>Requisito</th><th>Arquitectura</th><th>Implementación</th><th>Cobertura de Pruebas</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">RF-1</td><td>Medición Continua de Distancia</td><td class="mono">AD-2, AD-3, AD-6</td><td class="mono">UltrasonicSensor.cpp/h</td><td class="mono">CP-8…CP-12</td></tr>
+          <tr><td class="mono">RF-2</td><td>Alerta de Zona Roja</td><td class="mono">AD-4, AD-5</td><td class="mono">main.cpp, Led.cpp</td><td class="mono">CP-3, CP-6, CP-7</td></tr>
+          <tr><td class="mono">RF-3</td><td>Indicador de Zona Amarilla</td><td class="mono">AD-5</td><td class="mono">main.cpp, Led.cpp</td><td class="mono">CP-2, CP-5, CP-6</td></tr>
+          <tr><td class="mono">RF-4</td><td>Indicador de Zona Verde</td><td class="mono">AD-5</td><td class="mono">main.cpp, Led.cpp</td><td class="mono">CP-1, CP-4, CP-6</td></tr>
+          <tr><td class="mono">RF-5</td><td>Lectura Inválida / Estado de Error</td><td class="mono">AD-2, AD-4</td><td class="mono">main.cpp, UltrasonicSensor.cpp</td><td class="mono">CP-8…CP-12</td></tr>
+          <tr><td class="mono">RF-6</td><td>Clase <code>Led</code></td><td class="mono">AD-1, AD-4</td><td class="mono">Led.h/.cpp</td><td class="mono">CP-7, CP-10</td></tr>
+          <tr><td class="mono">RF-7</td><td>Clase <code>UltrasonicSensor</code></td><td class="mono">AD-2, AD-3, AD-6</td><td class="mono">UltrasonicSensor.h/.cpp</td><td class="mono">CP-1…CP-12 (general)</td></tr>
+          <tr><td class="mono">RF-8</td><td>Orquestación Simplificada</td><td class="mono">AD-1, AD-5</td><td class="mono">main.cpp</td><td>Revisión estática de código</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="text-align:right; margin-top:10px;"><a class="back-to-top" href="#top">↑ volver arriba</a></p>
+  </section>
+
+  <footer>
+    <p style="margin:0 0 10px; color:var(--ink); font-family:'IBM Plex Sans',sans-serif; font-size:13px;">Referencias de Documentación</p>
+    <ul>
+      <li>Requisitos — <code>_bmad-output/planning-artifacts/prds/prd-ultrasonic-sensor-leds-demo-2026-08-27/prd.md</code></li>
+      <li>Plan de Pruebas — <code>_bmad-output/planning-artifacts/prds/prd-ultrasonic-sensor-leds-demo-2026-08-27/test-plan.md</code></li>
+      <li>Arquitectura — <code>_bmad-output/planning-artifacts/architecture/architecture-ultrasonic-sensor-leds-demo-2026-08-27/ARCHITECTURE-SPINE.md</code></li>
+      <li>Revisiones — <code>reviews/review-adversarial.md</code>, <code>reviews/review-tech-verify.md</code></li>
+      <li>Especificaciones de Implementación — <code>_bmad-output/implementation-artifacts/spec-*.md</code></li>
+      <li>Tareas Pendientes — <code>_bmad-output/implementation-artifacts/deferred-work.md</code></li>
+      <li>Esquema de Conexiones — <a href="wiring-diagram.html">wiring-diagram.html</a></li>
+    </ul>
+  </footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script>
+  function currentMermaidTheme() {
+    var root = document.documentElement;
+    var explicit = root.getAttribute('data-theme');
+    if (explicit === 'dark') return 'dark';
+    if (explicit === 'light') return 'default';
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default';
+  }
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: currentMermaidTheme(),
+    securityLevel: 'loose',
+    fontFamily: '"IBM Plex Sans", sans-serif'
+  });
+</script>
+
+</body>
+</html>
