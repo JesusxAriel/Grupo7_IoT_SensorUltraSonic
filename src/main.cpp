@@ -10,12 +10,12 @@ namespace Pines {
     constexpr uint8_t ROJO = 14;
 }
 
-UltrasonicSensor sensor(Pines::TRIG, Pines::ECHO);
+UltrasonicSensor sensor(Pines::TRIG, Pines::ECHO, 350);
 Semaforo semaforo(Pines::VERDE, Pines::AMARILLO, Pines::ROJO);
 
 // Control de tiempo para imprimir por puerto serie sin saturar
 unsigned long lastPrintMs = 0;
-constexpr unsigned long PRINT_INTERVAL_MS = 250; // Imprime cada 250 ms
+constexpr unsigned long PRINT_INTERVAL_MS = 350; // Imprime cada 350 ms
 
 void setup() {
     Serial.begin(115200);

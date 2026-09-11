@@ -21,9 +21,9 @@ void Semaforo::procesarDistancia(float distanciaCm) {
     // 1. Clasificación del rango
     if (distanciaCm < 0.0f) {
         nuevoRango = RangoDistancia::Error;
-    } else if (distanciaCm <= 10.0f) {
+    } else if (distanciaCm <= 30.0f) {
         nuevoRango = RangoDistancia::Cerca;
-    } else if (distanciaCm <= 25.0f) {
+    } else if (distanciaCm <= 80.0f) {
         nuevoRango = RangoDistancia::Medio;
     } else {
         nuevoRango = RangoDistancia::Lejos;
@@ -37,14 +37,14 @@ void Semaforo::procesarDistancia(float distanciaCm) {
     // 3. Aplicación de estados según el nuevo rango
     switch (rangoActual_) {
         case RangoDistancia::Cerca:
-            rojo_.blink(4.0f); // Parpadeo rápido en rojo
+            rojo_.blink(6.0f); // Parpadeo rápido en rojo
             amarillo_.turnOff();
             verde_.turnOff();
             break;
 
         case RangoDistancia::Medio:
             rojo_.turnOff();
-            amarillo_.turnOn(); // Amarillo sólido
+            amarillo_.blink(2.0f); // Parpadeo lento en amarillo
             verde_.turnOff();
             break;
 
