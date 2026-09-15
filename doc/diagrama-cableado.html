@@ -20,7 +20,7 @@
     --accent-soft: #E4F3F5;
     --led-red: #D6432D;
     --led-yellow: #C6941F;
-    --led-orange: #D9720F;
+    --led-green: #2F9E44;
     --warning: #B8560F;
     --warning-soft: #FBEEE3;
     --grid-line: #E7EBEF;
@@ -38,7 +38,7 @@
       --accent-soft: #16323A;
       --led-red: #FF6A52;
       --led-yellow: #F5C452;
-      --led-orange: #F5943D;
+      --led-green: #51CF66;
       --warning: #E38A3D;
       --warning-soft: #33261A;
       --grid-line: #232B36;
@@ -56,7 +56,7 @@
     --accent-soft: #16323A;
     --led-red: #FF6A52;
     --led-yellow: #F5C452;
-    --led-orange: #F5943D;
+    --led-green: #51CF66;
     --warning: #E38A3D;
     --warning-soft: #33261A;
     --grid-line: #232B36;
@@ -335,7 +335,7 @@
   <header class="masthead">
     <p class="eyebrow">Sistema de Control de Proximidad — Referencia de Construcción</p>
     <h1>Cableado y Mapa de Pines</h1>
-    <p class="dek">Conexión en protoboard del sensor ultrasónico HC-SR04 y los 3 LEDs de zona (rojo, amarillo y naranja), según el circuito armado y documentado en el informe de desarrollo del proyecto.</p>
+    <p class="dek">Conexión en protoboard del sensor ultrasónico HC-SR04 y los 3 LEDs de zona (rojo, amarillo y verde), según el circuito armado y documentado en el informe de desarrollo del proyecto.</p>
     <div class="meta-strip">
       <span>Placa: <strong>ESP32 DevKit</strong></span>
       <span>Sensor: <strong>HC-SR04</strong></span>
@@ -346,10 +346,10 @@
 
   <section aria-labelledby="diagram-heading">
     <h2 id="diagram-heading">Diagrama del circuito</h2>
-    <p class="section-note">Cada LED de zona tiene su propia resistencia limitadora de 220Ω y su propio pin — ningún LED comparte pin. Colores de las líneas: verde azulado para las señales digitales del sensor, rojo / amarillo / naranja para la línea de cada LED, y gris para alimentación y tierra.</p>
+    <p class="section-note">Cada LED de zona tiene su propia resistencia limitadora de 220Ω y su propio pin — ningún LED comparte pin. Colores de las líneas: verde azulado para las señales digitales del sensor, rojo / amarillo / verde para la línea de cada LED, y gris para alimentación y tierra.</p>
 
     <figure class="schematic-panel">
-      <svg viewBox="0 0 960 570" role="img" aria-label="Diagrama de cableado que conecta un ESP32 a un sensor ultrasónico HC-SR04 y tres LEDs: pin 27 al disparador (TRIG) del sensor, pin 26 desde el eco (ECHO) del sensor a través de un divisor de voltaje de 1k/2k ohms, y pines 14, 12 y 13 a través de resistencias de 220 ohms hacia los LEDs rojo, amarillo y naranja, todos compartiendo un bus de tierra común.">
+      <svg viewBox="0 0 960 570" role="img" aria-label="Diagrama de cableado que conecta un ESP32 a un sensor ultrasónico HC-SR04 y tres LEDs: pin 27 al disparador (TRIG) del sensor, pin 26 desde el eco (ECHO) del sensor a través de un divisor de voltaje de 1k/2k ohms, y pines 14, 12 y 13 a través de resistencias de 220 ohms hacia los LEDs rojo, amarillo y verde, todos compartiendo un bus de tierra común.">
         <defs>
           <marker id="arrowAccent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"></path>
@@ -420,7 +420,7 @@
         <text x="245" y="334" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)">14</text>
         <text x="398" y="329" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--muted)">220Ω</text>
         <text x="548" y="335" font-family="IBM Plex Sans" font-size="12.5" font-weight="500" fill="var(--ink)">ROJO</text>
-        <text x="548" y="349" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--muted)">d ≤ 10cm · parpadea 4Hz</text>
+        <text x="548" y="349" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--muted)">d ≤ 30cm · parpadea 4Hz</text>
 
         <!-- Amarillo -->
         <line x1="262" y1="390" x2="380" y2="390" stroke="var(--led-yellow)" stroke-width="2"></line>
@@ -434,21 +434,21 @@
         <text x="245" y="384" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)">12</text>
         <text x="398" y="379" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--muted)">220Ω</text>
         <text x="548" y="385" font-family="IBM Plex Sans" font-size="12.5" font-weight="500" fill="var(--ink)">AMARILLO</text>
-        <text x="548" y="399" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--muted)">10 &lt; d ≤ 25cm · sólido</text>
+        <text x="548" y="399" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--muted)">30 &lt; d ≤ 80cm · sólido</text>
 
-        <!-- Naranja (rol "verde" en el código) -->
-        <line x1="262" y1="440" x2="380" y2="440" stroke="var(--led-orange)" stroke-width="2"></line>
-        <polyline points="380,440 386,433 394,447 402,433 410,447 416,440" fill="none" stroke="var(--led-orange)" stroke-width="1.6"></polyline>
-        <line x1="416" y1="440" x2="500" y2="440" stroke="var(--led-orange)" stroke-width="2"></line>
-        <circle cx="260" cy="440" r="3.5" fill="var(--led-orange)"></circle>
-        <circle cx="520" cy="440" r="15" fill="var(--led-orange)"></circle>
-        <line x1="530" y1="426" x2="538" y2="418" stroke="var(--led-orange)" stroke-width="1.5"></line>
-        <line x1="534" y1="432" x2="542" y2="424" stroke="var(--led-orange)" stroke-width="1.5"></line>
+        <!-- Verde -->
+        <line x1="262" y1="440" x2="380" y2="440" stroke="var(--led-green)" stroke-width="2"></line>
+        <polyline points="380,440 386,433 394,447 402,433 410,447 416,440" fill="none" stroke="var(--led-green)" stroke-width="1.6"></polyline>
+        <line x1="416" y1="440" x2="500" y2="440" stroke="var(--led-green)" stroke-width="2"></line>
+        <circle cx="260" cy="440" r="3.5" fill="var(--led-green)"></circle>
+        <circle cx="520" cy="440" r="15" fill="var(--led-green)"></circle>
+        <line x1="530" y1="426" x2="538" y2="418" stroke="var(--led-green)" stroke-width="1.5"></line>
+        <line x1="534" y1="432" x2="542" y2="424" stroke="var(--led-green)" stroke-width="1.5"></line>
         <line x1="535" y1="440" x2="898" y2="440" stroke="var(--trace)" stroke-width="1.6"></line>
         <text x="245" y="434" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)">13</text>
         <text x="398" y="429" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="var(--muted)">220Ω</text>
-        <text x="548" y="435" font-family="IBM Plex Sans" font-size="12.5" font-weight="500" fill="var(--ink)">NARANJA</text>
-        <text x="548" y="449" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--muted)">d &gt; 25cm · sólido (rol "verde_" en código)</text>
+        <text x="548" y="435" font-family="IBM Plex Sans" font-size="12.5" font-weight="500" fill="var(--ink)">VERDE</text>
+        <text x="548" y="449" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--muted)">d &gt; 80cm · sólido</text>
 
         <!-- GND bus -->
         <line x1="900" y1="260" x2="900" y2="440" stroke="var(--trace)" stroke-width="2"></line>
@@ -464,7 +464,7 @@
         <text x="76" y="528" font-family="IBM Plex Sans" font-size="11.5" fill="var(--muted)">Señal del sensor</text>
         <circle cx="210" cy="524" r="4" fill="var(--led-red)"></circle>
         <circle cx="222" cy="524" r="4" fill="var(--led-yellow)"></circle>
-        <circle cx="234" cy="524" r="4" fill="var(--led-orange)"></circle>
+        <circle cx="234" cy="524" r="4" fill="var(--led-green)"></circle>
         <text x="246" y="528" font-family="IBM Plex Sans" font-size="11.5" fill="var(--muted)">Manejo de LED (por zona)</text>
         <circle cx="440" cy="524" r="4" fill="var(--trace)"></circle>
         <text x="450" y="528" font-family="IBM Plex Sans" font-size="11.5" fill="var(--muted)">Alimentación / tierra</text>
@@ -489,7 +489,7 @@
           <tr><td><span class="dot" style="background:var(--accent)"></span>HC-SR04 Echo</td><td class="mono">26</td><td>Entrada</td><td>Pin ECHO del sensor, vía divisor 1kΩ / 2kΩ</td></tr>
           <tr><td><span class="dot" style="background:var(--led-red)"></span>LED Rojo</td><td class="mono">14</td><td>Salida</td><td>Resistencia 220Ω → ánodo del LED</td></tr>
           <tr><td><span class="dot" style="background:var(--led-yellow)"></span>LED Amarillo</td><td class="mono">12</td><td>Salida</td><td>Resistencia 220Ω → ánodo del LED</td></tr>
-          <tr><td><span class="dot" style="background:var(--led-orange)"></span>LED Naranja</td><td class="mono">13</td><td>Salida</td><td>Resistencia 220Ω → ánodo del LED</td></tr>
+          <tr><td><span class="dot" style="background:var(--led-green)"></span>LED Verde</td><td class="mono">13</td><td>Salida</td><td>Resistencia 220Ω → ánodo del LED</td></tr>
         </tbody>
       </table>
     </div>
@@ -515,18 +515,18 @@
     <div class="zone-row">
       <div class="zone-card">
         <div class="swatch" style="background:var(--led-red)"></div>
-        <span class="range">d ≤ 10 cm</span>
-        <span class="behavior">Rojo parpadea, 4 Hz</span>
+        <span class="range">d ≤ 30 cm</span>
+        <span class="behavior">Rojo parpadea, 6 Hz</span>
       </div>
       <div class="zone-card">
         <div class="swatch" style="background:var(--led-yellow)"></div>
-        <span class="range">10 &lt; d ≤ 25 cm</span>
-        <span class="behavior">Amarillo, sólido</span>
+        <span class="range">30 &lt; d ≤ 80 cm</span>
+        <span class="behavior">Amarillo parpadea, 2 Hz</span>
       </div>
       <div class="zone-card">
-        <div class="swatch" style="background:var(--led-orange)"></div>
-        <span class="range">d &gt; 25 cm</span>
-        <span class="behavior">Naranja, sólido</span>
+        <div class="swatch" style="background:var(--led-green)"></div>
+        <span class="range">d &gt; 80 cm</span>
+        <span class="behavior">Verde, sólido</span>
       </div>
       <div class="zone-card">
         <div class="swatch" style="background:var(--trace)"></div>

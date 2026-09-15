@@ -3,7 +3,7 @@
 
 **Carrera:** Ingeniería de Sistemas  
 **Asignatura:** SIS-234  
-**Modalidad:** Grupos de 2 o 3 integrantes  
+**Integrantes:** Mamani, Velasco y Koller
 **Fecha de entrega:** 15 de septiembre de 2026  
 
 ---
