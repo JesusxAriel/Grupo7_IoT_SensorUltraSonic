@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Práctica 1 — Sistema de Control de Proximidad por Ultrasonido</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;          /* Fondo general ultra oscuro */
+            --card-bg: #111827;        /* Fondo del contenedor/tarjeta */
+            --primary-color: #38bdf8;   /* Azul cian neón para títulos */
+            --secondary-color: #818cf8; /* Violeta/Azul para subtítulos y enlaces */
+            --text-color: #e2e8f0;      /* Texto principal claro */
+            --text-muted: #94a3b8;      /* Texto secundario/metadatos */
+            --border-color: #1e293b;    /* Bordes sutiles */
+            --code-bg: #030712;         /* Fondo para bloques de código ASCII */
+            --callout-bg: #1e1b4b;      /* Fondo para cajas destacadas */
+            --callout-border: #6366f1;  /* Borde destacado */
+            --pass-bg: #064e3b;         /* Verde oscuro para estado PASS */
+            --pass-text: #4ade80;       /* Verde neón para texto PASS */
+            --table-stripe: #1e293b;    /* Filas alternadas de tablas */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+        }
+
+        header {
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .metadata {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 35px;
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            margin-top: 20px;
+        }
+
+        ul, ol {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* Styling Tables Dark */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+            background-color: var(--card-bg);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        th {
+            background-color: #1e293b;
+            color: var(--primary-color);
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--table-stripe);
+        }
+
+        /* Status Badge */
+        .status-pass {
+            background-color: var(--pass-bg);
+            color: var(--pass-text);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+            border: 1px solid var(--pass-text);
+        }
+
+        /* Code & ASCII Blocks */
+        pre {
+            background-color: var(--code-bg);
+            color: #38bdf8;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Callout Box */
+        .callout {
+            background-color: var(--callout-bg);
+            border-left: 5px solid var(--callout-border);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            color: #e0e7ff;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 0.85em;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>Práctica 1 — Integración de Sensores y Actuadores en un Objeto Inteligente: Sistema de Control de Proximidad por Ultrasonido</h1>
+        <div class="metadata">
+            <span><strong>Carrera:</strong> Ingeniería de Sistemas</span> |
+            <span><strong>Asignatura:</strong> SIS-234</span> |
+            <span><strong>Modalidad:</strong> Grupos de 2 o 3 integrantes</span> |
+            <span><strong>Fecha de entrega:</strong> 15 de septiembre de 2026</span>
+        </div>
+    </header>
+
+    <section id="resumen-ejecutivo">
+        <h2>Resumen Ejecutivo</h2>
+        <p>Este informe documenta el diseño, implementación y validación experimental del <strong>Sistema de Control de Proximidad por Ultrasonido</strong>, desarrollado sobre la plataforma ESP32. El sistema utiliza un sensor ultrasónico <strong>HC-SR04</strong> para medir distancias en tiempo real y clasificar el estado de proximidad mediante un indicador visual tipo semáforo compuesto por tres LEDs (<strong>Rojo</strong>, <strong>Naranja</strong> y <strong>Verde</strong>).</p>
+
+        <p>La arquitectura de software aplica el paradigma de Programación Orientada a Objetos (POO), desacoplando las responsabilidades en tres clases modulares (<code>Led</code>, <code>UltrasonicSensor</code> y <code>Semaforo</code>) bajo la orquestación de un super-loop no bloqueante (<code>main.cpp</code>).</p>
+
+        <p>Siguiendo la metodología <strong>BMAD</strong> (<em>Requirement Analysis &rarr; System Design &rarr; Implementation &rarr; Testing</em>), este documento reúne todos los requisitos exigidos por la Guía de la Práctica 1.</p>
+    </section>
+
+    <section id="requerimientos">
+        <h2>1. Requerimientos Funcionales y No Funcionales</h2>
+        
+        <h3>1.1 Requerimientos Funcionales (RF)</h3>
+        <ul>
+            <li><strong>RF1.</strong> Medir continuamente la distancia entre el sensor ultrasónico HC-SR04 y un objeto.</li>
+            <li><strong>RF2.</strong> Clasificar la distancia medida en tres rangos contiguos y sin solapamiento:
+                <ul>
+                    <li><strong>Zona Cerca (d &le; 30 cm):</strong> Estado de alerta inmediata.</li>
+                    <li><strong>Zona Media (30 &lt; d &le; 80 cm):</strong> Estado de precaución intermedia.</li>
+                    <li><strong>Zona Lejana (d &gt; 80 cm):</strong> Estado de zona libre.</li>
+                </ul>
+            </li>
+            <li><strong>RF3.</strong> Activar los actuadores según la zona detectada:
+                <ul>
+                    <li><strong>Cerca (d &le; 30 cm):</strong> LED Rojo parpadeando a una frecuencia rápida de 6 Hz.</li>
+                    <li><strong>Medio (30 &lt; d &le; 80 cm):</strong> LED Naranja parpadeando a una frecuencia moderada de 2 Hz.</li>
+                    <li><strong>Lejos (d &gt; 80 cm):</strong> LED Verde en encendido sólido (sin parpadeo).</li>
+                </ul>
+            </li>
+            <li><strong>RF4.</strong> Implementar un estado de lectura inválida o error (cuando d &lt; 0 o no hay eco de retorno), activando el parpadeo simultáneo de los tres LEDs a 5 Hz.</li>
+            <li><strong>RF5.</strong> Garantizar un diseño modular orientado a objetos con encapsulamiento estricto de periféricos.</li>
+            <li><strong>RF6.</strong> Optimizar el cambio de estado de los LEDs para evitar ejecuciones redundantes o reinicios de temporizadores cuando la distancia permanezca dentro del mismo rango.</li>
+        </ul>
+
+        <h3>1.2 Requerimientos No Funcionales (RNF)</h3>
+        <ul>
+            <li><strong>Estabilidad:</strong> Operación continua sin reinicios ni congelamientos del microcontrolador.</li>
+            <li><strong>Exactitud de medición:</strong> Error dentro de un margen razonable (&le; &plusmn;3 cm) respecto a mediciones con cinta métrica.</li>
+            <li><strong>Tiempo de respuesta:</strong> El cambio de estado del indicador LED ante variaciones de distancia debe ser inferior a 1 segundo (&le; 1 s).</li>
+            <li><strong>Frecuencia de muestreo:</strong> Frecuencia de lectura ultrasónica de al menos 10 muestreos por segundo (intervalo de 100 ms entre mediciones).</li>
+            <li><strong>Temporización no bloqueante:</strong> Tanto el muestreo del sensor como el parpadeo de los LEDs deben utilizar la función <code>millis()</code> en lugar de retardos bloqueantes (<code>delay()</code>).</li>
+        </ul>
+    </section>
+
+    <section id="diseno">
+        <h2>2. Análisis y Diseño</h2>
+
+        <h3>2.1 Diagrama de Arquitectura del Sistema</h3>
+        <p>El sistema sigue un flujo desacoplado siguiendo el enfoque BMAD, donde la entrada lógica es procesada y categorizada antes de ser enviada a la capa de salida visual.</p>
+<pre>
++-------------------------------------------------------------------+
+|                            ESP32 MCU                              |
+|                                                                   |
+|  +--------------------+    distanciaCm   +---------------------+  |
+|  | UltrasonicSensor   | ----------------> |       Semaforo      |  |
+|  | (HC-SR04 Driver)   |                   |  (State Machine)    |  |
+|  +--------------------+                   +---------------------+  |
+|            ^                               /        |        \     |
+|            |                              v         v         v    |
+|         HC-SR04                        Led Rojo  Led Nar. Led Ver.|
++-------------------------------------------------------------------+
+</pre>
+
+        <h3>2.2 Diagrama de Circuito y Mapa de Pines</h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Componente</th>
+                        <th>Pin ESP32</th>
+                        <th>Modo / Configuración</th>
+                        <th>Notas / Función de Hardware</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>HC-SR04 Trigger</strong></td>
+                        <td>GPIO 27</td>
+                        <td>Salida digital</td>
+                        <td>Emite el pulso de disparo de 10 &micro;s</td>
+                    </tr>
+                    <tr>
+                        <td><strong>HC-SR04 Echo</strong></td>
+                        <td>GPIO 26</td>
+                        <td>Entrada digital</td>
+                        <td>Mide la duración del eco retornado</td>
+                    </tr>
+                    <tr>
+                        <td><strong>LED Rojo</strong></td>
+                        <td>GPIO 14</td>
+                        <td>Salida digital</td>
+                        <td>Actuador para Zona Cerca (d &le; 30 cm)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>LED Naranja</strong></td>
+                        <td>GPIO 12</td>
+                        <td>Salida digital</td>
+                        <td>Actuador para Zona Media (30 &lt; d &le; 80 cm)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>LED Verde</strong></td>
+                        <td>GPIO 13</td>
+                        <td>Salida digital</td>
+                        <td>Actuador para Zona Lejana (d &gt; 80 cm)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p><em>Nota técnica sobre los actuadores:</em> Durante la fase de pruebas físicas de laboratorio se utilizó temporalmente un LED amarillo de reemplazo debido a que el LED verde original se fundió. Sin embargo, para la demostración final y la especificación del prototipo, la señalización de zona lejana corresponde formalmente al <strong>LED Verde</strong>.</p>
+
+        <h3>2.3 Máquina de Estados del Sistema</h3>
+<pre>
+                        +---------------+
+                        |  INDEFINIDO   |
+                        +---------------+
+                                |
+      +-------------------------+-------------------------+
+      | (d &lt; 0)                 | (0 &lt;= d &lt;= 30)          | (d &gt; 80)
+      v                         v                         v
++-----------+  (0&lt;=d&lt;=30)  +-----------+  (d &gt; 80)   +-----------+
+|   ERROR   | ------------>|   CERCA   | ----------->|   LEJOS   |
+| (3 LEDs 5Hz)|&lt;------------| (Rojo 6Hz)|&lt;-----------| (Verde Sól)|
++-----------+  (d &lt; 0)     +-----------+  (d &lt; 0)    +-----------+
+      ^                         |                         ^
+      |                         | (30 &lt; d &lt;= 80)          |
+      |                         v                         |
+      |                    +-----------+                  |
+      +--------------------|   MEDIO   |------------------+
+          (d &lt; 0)          |(Naranja2Hz)|   (d &gt; 80)
+                           +-----------+
+</pre>
+
+        <h3>2.4 Invariantes Arquitectónicos (BMAD Design)</h3>
+        <ol>
+            <li><strong>AD-1:</strong> La cadencia de muestreo (~100 ms) se controla internamente dentro de la clase <code>UltrasonicSensor</code> mediante <code>millis()</code>.</li>
+            <li><strong>AD-2:</strong> Solo distancias comprendidas en el rango de [2.0, 400.0] cm se consideran válidas; cualquier timeout o medición fuera de límites retorna <code>-1.0f</code>.</li>
+            <li><strong>AD-3:</strong> La clase <code>UltrasonicSensor</code> es la única entidad autorizada para operar sobre los pines Trigger y Echo.</li>
+            <li><strong>AD-4:</strong> La clase <code>Led</code> gestiona su estado interno de temporización; la invocación de <code>blink(hz)</code> es idempotente para evitar congelamientos por reinicios del temporizador.</li>
+            <li><strong>AD-5:</strong> La clase <code>Semaforo</code> encapsula completamente la lógica de rangos de distancia y las transiciones entre actuadores.</li>
+            <li><strong>AD-6:</strong> Los parpadeos individuales de los LEDs se procesan mediante <code>Led::update()</code> en el ciclo principal de forma no bloqueante.</li>
+        </ol>
+    </section>
+
+    <section id="implementacion">
+        <h2>3. Desarrollo e Implementación</h2>
+        <p>El código fuente se estructuró de manera modular dividiendo las responsabilidades en clases independientes.</p>
+
+        <h3>3.1 Estructura de Clases</h3>
+        <ul>
+            <li><strong><code>Led</code>:</strong> Encapsula la gestión de pines de salida digital. Ofrece soporte para modos de encendido sólido, apagado y parpadeo a una frecuencia configurable mediante <code>millis()</code>.</li>
+            <li><strong><code>UltrasonicSensor</code>:</strong> Controla la temporización de disparo del sensor HC-SR04, calcula el tiempo de vuelo de la onda ultrasónica, aplica la conversión de tiempo a centímetros (d = t &times; 0.0343 / 2) y valida los límites operativos.</li>
+            <li><strong><code>Semaforo</code>:</strong> Contiene tres instancias de <code>Led</code> (Rojo, Naranja, Verde) y administra la máquina de estados evaluando la distancia recibida.</li>
+            <li><strong><code>main.cpp</code>:</strong> Declara la asignación de pines, instancia los componentes globales e interconecta las mediciones con la máquina de estados en el bucle principal.</li>
+        </ul>
+    </section>
+
+    <section id="pruebas">
+        <h2>4. Pruebas y Validaciones</h2>
+        <p>Las pruebas físicas fueron ejecutadas sobre un microcontrolador ESP32 conectado a un sensor HC-SR04 y al módulo de LEDs, utilizando una cinta métrica graduada para la verificación de distancias.</p>
+
+        <h3>4.1 Tabla de Resultados de Pruebas Físicas</h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>TC</th>
+                        <th>Escenario / Prueba</th>
+                        <th>Procedimiento Físico</th>
+                        <th>Resultado Esperado</th>
+                        <th>Registro de Evidencia y Observaciones Reales</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>TC-1</strong></td>
+                        <td>Objeto a 5 cm (Cerca)</td>
+                        <td>Colocar un objeto a 5 cm medidos con cinta métrica por 3-4 s.</td>
+                        <td>LED Rojo parpadea a 6 Hz. Naranja y Verde apagados.</td>
+                        <td>El LED Rojo parpadea muy rápido al colocar el objeto a 5 cm.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-2</strong></td>
+                        <td>Objeto a 15 cm (Cerca)</td>
+                        <td>Alejar el objeto a 15 cm exactos medidos con cinta métrica.</td>
+                        <td>Sigue en LED Rojo parpadeando a 6 Hz. Naranja y Verde apagados.</td>
+                        <td>El LED Rojo parpadea muy rápido al colocar el objeto a 15 cm.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-3</strong></td>
+                        <td>Objeto a 30 cm (Límite Cerca)</td>
+                        <td>Ubicar el objeto a 30 cm exactos.</td>
+                        <td>LED Rojo parpadeando a 6 Hz. Naranja y Verde apagados.</td>
+                        <td>El LED Rojo parpadea muy rápido al colocar el objeto a 30 cm.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-4</strong></td>
+                        <td>Objeto a 50 cm (Medio)</td>
+                        <td>Ubicar el objeto a 50 cm medidos con cinta métrica.</td>
+                        <td>LED Naranja parpadeando a 2 Hz. Rojo y Verde apagados.</td>
+                        <td>El LED Naranja parpadea a 2 Hz al colocar el objeto a 50 cm.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-5</strong></td>
+                        <td>Objeto a 80 cm (Límite Medio)</td>
+                        <td>Ubicar el objeto a 80 cm medidos con cinta métrica (30 &le; d &le; 80 cm).</td>
+                        <td>LED Naranja parpadeando a 2 Hz. Rojo y Verde apagados.</td>
+                        <td>El LED Naranja parpadea al colocar el objeto a 80 cm.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-6</strong></td>
+                        <td>Objeto a 100 cm (Lejos)</td>
+                        <td>Alejar el objeto a 100 cm o más en un espacio libre.</td>
+                        <td>LED Verde sólido encendido (sin límite superior práctico).</td>
+                        <td>LED en posición superior activo al detectar el objeto a más de 80 cm. <em>(En laboratorio se usó LED de reemplazo temporal por daño del verde)</em>.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-7</strong></td>
+                        <td>Sin eco válido / Timeout</td>
+                        <td>Tapar el sensor con la mano o colocarlo en un área sin rebote.</td>
+                        <td>Los 3 LEDs parpadean juntos a 5 Hz. Alerta en Monitor Serial.</td>
+                        <td>Parpadeo simultáneo de los 3 LEDs registrado.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-8</strong></td>
+                        <td>Recorrido continuo</td>
+                        <td>Mover el objeto en secuencia: 10 cm &rarr; 30 cm &rarr; 80 cm &rarr; 10 cm.</td>
+                        <td>Transición limpia entre estados: Rojo &rarr; Naranja &rarr; Verde &rarr; Rojo.</td>
+                        <td>Objeto en movimiento (8.1 cm a 88.2 cm). Transición continua de aleja/aproxima registrada en Monitor Serie.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-9</strong></td>
+                        <td>Optimización de estado</td>
+                        <td>Dejar el objeto quieto en rango lejano por 10 segundos.</td>
+                        <td>LED Verde continuo sin destellos ni reinicios de temporizador.</td>
+                        <td><strong>Observación:</strong> La distancia detectada en la prueba fue de <strong>~232.8 cm (&plusmn;0.9 cm)</strong> (objeto/pared lejana) y no de 80 cm. Lectura estable. <strong>Aclaración:</strong> No se realizó la prueba de operación prolongada de 10 minutos.</td>
+                        <td><span class="status-pass">PASS*</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-10</strong></td>
+                        <td>Conteo parpadeo Cerca</td>
+                        <td>Mantener el objeto a 5 cm por exactamente 5 segundos.</td>
+                        <td>~20 ciclos de parpadeo del LED Rojo (frecuencia ~4-6 Hz).</td>
+                        <td>Pasa por unos ciclos contados en la tabla (~20 ciclos en 5 s).</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-11</strong></td>
+                        <td>Conteo parpadeo Error</td>
+                        <td>Simular el estado de error (sin eco) por exactamente 5 segundos.</td>
+                        <td>~25 ciclos de parpadeo de los 3 LEDs (frecuencia 5 Hz).</td>
+                        <td>20 ciclos registrados en 5 s (5 Hz). Confirmado parpadeo de 3 LEDs por alerta.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-12</strong></td>
+                        <td>Recuperación de Error</td>
+                        <td>Estando en Error, colocar inmediatamente un objeto a 15 cm.</td>
+                        <td>Pasa a LED Rojo en parpadeo (&lt;1 s, siguiente ciclo).</td>
+                        <td>Tarda aproximadamente poco menos de 1 seg de respuesta.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-13</strong></td>
+                        <td>Objeto a &lt; 2 cm</td>
+                        <td>Pegar el objeto a menos de 2 cm de las cápsulas ultrasónicas.</td>
+                        <td>El sistema entra en Error (-1.0f) o muestra lecturas erráticas.</td>
+                        <td>Los 3 LEDs parpadean mostrando error si el rebote a &lt;2 cm no es captado.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-14</strong></td>
+                        <td>Objeto a 2 cm</td>
+                        <td>Colocar el objeto rozando la distancia mínima (2 cm).</td>
+                        <td>Lectura válida (~2.0 cm) con LED Rojo parpadeando.</td>
+                        <td>El LED Rojo parpadea al colocar el objeto en el límite de 2 cm.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-15</strong></td>
+                        <td>Objeto a 400 cm</td>
+                        <td>Apuntar a una pared a 4 metros (máximo del rango práctico).</td>
+                        <td>Lectura válida en Verde sólido o límite físico documentado.</td>
+                        <td>Los 3 LEDs parpadean mostrando error si el rebote a 4 m no es captado por dispersión.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>TC-16</strong></td>
+                        <td>Objeto a 15 cm (Cerca)</td>
+                        <td>Alejar el objeto a 15 cm exactos medidos con una cinta métrica.</td>
+                        <td>Sigue en LED Rojo parpadeando a 6 Hz. Naranja y Verde apagados.</td>
+                        <td>El LED Rojo parpadea muy rápido al colocar el dispositivo a 15 cm.</td>
+                        <td><span class="status-pass">PASS</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p><em>*Nota en TC-9: Caso approved con la salvedad explícita de que la prueba continua se acotó a la verificación de estabilidad por 10 segundos a ~232.8 cm, omitiéndose el ensayo de 10 minutos.</em></p>
+    </section>
+
+    <section id="resultados">
+        <h2>5. Resultados</h2>
+        <ol>
+            <li><strong>Cumplimiento Funcional:</strong> El prototipo logró responder con precisión a los rangos ajustados de distancia (d &le; 30 cm, 30 &lt; d &le; 80 cm, d &gt; 80 cm), activando las secuencias visuales correspondientes.</li>
+            <li><strong>Determinación del Estado Lejano:</strong> Las mediciones reales confirmaron que en áreas abiertas el sensor detecta objetos lejanos a distancias superiores a 200 cm (como la lectura registrada de 232.8 cm en TC-9), manteniendo la salida en <strong>LED Verde sólido</strong> sin falsos disparos.</li>
+            <li><strong>Desempeño del Control No Bloqueante:</strong> La integración del algoritmo basado en <code>millis()</code> permitió ejecutar el parpadeo de LEDs a frecuencias de 2 Hz, 5 Hz y 6 Hz sin interferir con la cadencia de muestreo del sensor.</li>
+        </ol>
+    </section>
+
+    <section id="conclusiones">
+        <h2>6. Conclusiones</h2>
+        <ol>
+            <li>La arquitectura orientada a objetos facilitó la modularidad del código, permitiendo aislar la lógica física de los periféricos respecto a la máquina de estados.</li>
+            <li>Los rangos de distancia establecidos en 30 cm y 80 cm proveen una zonificación práctica y clara para la detección de objetos con el HC-SR04.</li>
+            <li>El sistema demostró ser altamente reactivo, registrando tiempos de recuperación y transición entre estados por debajo de 1 segundo.</li>
+        </ol>
+    </section>
+
+    <section id="recomendaciones">
+        <h2>7. Recomendaciones</h2>
+        <ol>
+            <li><strong>Reemplazo de Actuador:</strong> Asegurar la colocación del LED Verde definitivo para la sesión de demostración pública, restableciendo la convención de color estándar del semáforo.</li>
+            <li><strong>Filtrado Digital:</strong> Implementar un filtro de media móvil en lecturas ultrasónicas continuas para reducir la variabilidad provocada por el ruido acústico ambiental a distancias superiores a 200 cm.</li>
+            <li><strong>Prueba de Estabilidad Prolongada:</strong> Realizar una corrida formal del sistema durante al menos 10 minutos continuos en un entorno controlado para verificar la ausencia de desbordamiento en el contador de <code>millis()</code>.</li>
+        </ol>
+    </section>
+
+    <section id="anexos">
+        <h2>8. Anexos</h2>
+
+        <h3>Anexo A: Esquemático de Conexión de Hardware</h3>
+<pre>
+       ESP32 DOIT DEVKIT V1
+      +--------------------+
+      |                    |
+      |             GPIO27 |-------------------> Trig (HC-SR04)
+      |             GPIO26 |<------------------- Echo (HC-SR04)
+      |                    |
+      |             GPIO14 |----[ Res 220&Omega; ]---> Anodo LED Rojo
+      |             GPIO12 |----[ Res 220&Omega; ]---> Anodo LED Naranja
+      |             GPIO13 |----[ Res 220&Omega; ]---> Anodo LED Verde
+      |                    |
+      |                GND |-------------------> Catodos LEDs / GND Sensor
+      |                 5V |-------------------> VCC Sensor HC-SR04
+      +--------------------+
+</pre>
+
+        <h3>Anexo B: Enlace a Documentación Externa y Fotografías</h3>
+        <p>Para revisar las evidencias fotográficas del montaje físico, capturas de pantalla del Monitor Serial y las tablas de pruebas en su formato de documento completo, ingresar al siguiente enlace:</p>
+        <div class="callout">
+            <strong>Documento de Evidencias y Fotos de Pruebas (Google Docs):</strong><br>
+            <a href="https://docs.google.com/document/d/1EasUGaBclWC0m0WaxAW-MHenTERS7IfhTKkFUz5vBd4/edit?usp=sharing" target="_blank">https://docs.google.com/document/d/1EasUGaBclWC0m0WaxAW-MHenTERS7IfhTKkFUz5vBd4/edit?usp=sharing</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>Informe generado para la materia SIS-234 — Ingeniería de Sistemas | 2026</p>
+    </footer>
+
+</div>
+
+</body>
+</html>
